@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>logX-vms</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="side-top">
+        <button class="brand-wrap brand-toggle" id="brandToggle" title="Collapse sidebar">
+          <div class="brand-mark brand-logo"><img src="/static/logx-icon.jpeg" alt="logX-vms"></div>
+          <div class="brand-text">
+            <strong>logX</strong>
+            <span>VMware Analyzer</span>
+          </div>
+        </button>
+      </div>
+
+      <nav class="side-nav">
+        <button class="nav-item active" data-page="dashboard"><span><i class="bi bi-speedometer2"></i></span><b>Dashboard</b></button>
+        <button class="nav-item" data-page="inventory"><span><i class="bi bi-hdd-network"></i></span><b>VM Inventory</b></button>
+        <button class="nav-item" data-page="insights"><span><i class="bi bi-exclamation-triangle"></i></span><b>Troubleshooting</b></button>
+        <button class="nav-item" data-page="pathmapping"><span><i class="bi bi-diagram-3"></i></span><b>Path Mapping</b></button>
+        <button class="nav-item" data-page="logs"><span><i class="bi bi-file-text"></i></span><b>Logs</b></button>
+        <button class="nav-item" data-page="console"><span><i class="bi bi-terminal"></i></span><b>Console</b></button>
+        <div class="nav-separator"></div>
+        <button class="nav-item upload-nav" data-page="upload"><span><i class="bi bi-cloud-arrow-up"></i></span><b>Upload & Analyze</b></button>
+        <button class="nav-item recent-nav-item" data-page="recent"><span><i class="bi bi-clock-history"></i></span><b>Recent Uploads</b></button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section id="landingPage" class="landing hidden">
+        <div class="landing-card">
+          <p class="eyebrow">Welcome to logX-vms</p>
+          <h1 class="upload-page-title">Upload VM-Support Files</h1>
+          <p class="subtitle">Drop an ESXi/vCenter support bundle to extract VM inventory, logs, and troubleshooting insights.</p>
+          <div id="landingUploadMount"></div>
+        </div>
+      </section>
+
+      <section id="dashboardPage" class="page-section">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h1>System Overview</h1>
+          
+          <div class="page-head-tools">
+            <label class="source-switcher-wrap">
+              <span class="source-label">Selected Source:</span>
+              <select class="source-switcher" title="Switch uploaded bundle">
+                <option value="">Current bundle</option>
+              </select>
+            </label>
+            <button type="button" class="theme-toggle theme-page-toggle theme-slider-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+              <span class="theme-slider-icon light-icon">☀</span>
+              <span class="theme-slider-icon dark-icon">☾</span>
+              <span class="theme-slider-knob"></span>
+            </button>
+          </div>
+        </div>
+          </div>
+
+        <section class="system-info-card">
+          <div class="system-info-title">System Info</div>
+          <div class="system-info-table">
+            <div class="sys-row"><span>Hostname</span><strong id="hostName">unknown-host</strong></div>
+            <div class="sys-row"><span>VMware Version</span><strong id="hostVersion">unknown-version</strong></div>
+            <div class="sys-row"><span>Bundle Type</span><strong id="bundleType">Unknown</strong></div>
+            <div class="sys-row"><span>Source File</span><strong id="sourceFile">-</strong></div>
+          </div>
+        </section>
+
+        <section class="dashboard-no-vm-note hidden" id="dashboardNoVmNote">
+          <i class="bi bi-info-circle"></i>
+          <span>No VMs data are available in this selected support bundle. System cards are still shown, while VM-based charts display no-data states.</span>
+        </section>
+
+        <section class="resource-summary-grid">
+          <div class="resource-card">
+            <span class="resource-icon vm"><i class="bi bi-hdd-rack"></i></span>
+            <div><small>Total VMs</small><strong id="summaryTotalVms">0</strong><em>Inventory entries</em></div>
+          </div>
+          <div class="resource-card">
+            <span class="resource-icon cpu"><i class="bi bi-cpu"></i></span>
+            <div><small>Total vCPU</small><strong id="summaryTotalVcpu">0</strong><em>Allocated CPU</em></div>
+          </div>
+          <div class="resource-card">
+            <span class="resource-icon memory"><i class="bi bi-memory"></i></span>
+            <div><small>Total Memory</small><strong id="summaryTotalMemory">0 GB</strong><em>Allocated RAM</em></div>
+          </div>
+          <div class="resource-card">
+            <span class="resource-icon disk"><i class="bi bi-device-hdd"></i></span>
+            <div><small>Total Disks</small><strong id="summaryTotalDisks">0</strong><em>Attached disks</em></div>
+          </div>
+          <div class="resource-card">
+            <span class="resource-icon nic"><i class="bi bi-diagram-3"></i></span>
+            <div><small>Total NICs</small><strong id="summaryTotalNics">0</strong><em>Network adapters</em></div>
+          </div>
+        </section>
+
+        <section class="dashboard-grid dashboard-grid-3">
+          <section class="panel vm-stats-panel">
+            <div class="section-head">
+              <h2>VM Stats</h2>
+              <span class="mini-badge" id="vmStatsBadge">Guest OS</span>
+            </div>
+            <div id="vmStatsChart" class="vm-stats-chart">
+              <div class="no-data-card">No Data Available</div>
+            </div>
+          </section>
+
+          <section class="panel allocation-panel">
+            <div class="section-head">
+              <h2>vCPU Allocation</h2>
+              <span class="mini-badge" id="vcpuAllocBadge">No data</span>
+            </div>
+            <div id="vcpuAllocationChart" class="allocation-chart">
+              <div class="no-data-card">No Data Available</div>
+            </div>
+          </section>
+
+          <section class="panel allocation-panel">
+            <div class="section-head">
+              <h2>Memory Allocation</h2>
+              <span class="mini-badge" id="memoryAllocBadge">No data</span>
+            </div>
+            <div id="memoryAllocationChart" class="allocation-chart">
+              <div class="no-data-card">No Data Available</div>
+            </div>
+          </section>
+        </section>
+
+        <section class="dashboard-grid dashboard-grid-3 dashboard-grid-bottom">
+          <section class="panel top-memory-panel">
+            <div class="section-head">
+              <h2>Top VMs by Memory</h2>
+              <span class="mini-badge" id="topMemoryBadge">Top 5</span>
+            </div>
+            <div id="topMemoryChart" class="top-memory-chart">
+              <div class="no-data-card">No Data Available</div>
+            </div>
+          </section>
+
+          <section class="panel datastore-panel">
+            <div class="section-head">
+              <h2>Datastore Distribution</h2>
+              <span class="mini-badge" id="datastoreBadge">No data</span>
+            </div>
+            <div id="datastoreChart" class="datastore-chart">
+              <div class="no-data-card">No Data Available</div>
+            </div>
+          </section>
+
+          <section class="panel disk-nic-panel">
+            <div class="section-head">
+              <h2>Disks & NICs Distribution</h2>
+              <span class="mini-badge" id="diskNicBadge">No data</span>
+            </div>
+            <div id="diskNicChart" class="disk-nic-chart">
+              <div class="no-data-card">No Data Available</div>
+            </div>
+          </section>
+        </section>
+
+        <section class="dashboard-grid dashboard-grid-two dashboard-grid-vm-insights">
+          <section class="panel vm-list-panel">
+            <div class="section-head">
+              <h2>VMs List</h2>
+              <div class="section-actions">
+                <div class="badge compact-badge" id="inventoryBadge">0 VMs</div>
+                <button class="soft-btn" data-goto="inventory">View All</button>
+              </div>
+            </div>
+            <div class="table-wrap compact-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Host</th>
+                    <th>VM Name</th>
+                    <th>Guest OS</th>
+                    <th>Datastore</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardVmBody">
+                  <tr><td colspan="5" class="empty">No inventory loaded.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel insights-panel">
+            <div class="section-head">
+              <h2>Insights</h2>
+              <span class="mini-badge" id="findingBadge">No analysis</span>
+            </div>
+            <div id="findingsContainer" class="findings"></div>
+          </section>
+        </section>
+
+        
+      </section>
+      <section id="inventoryPage" class="page-section hidden">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">VM Inventory</p>
+            <h1>Virtual Machine Inventory</h1>
+          
+          <div class="page-head-tools">
+            <label class="source-switcher-wrap">
+              <span class="source-label">Selected Source:</span>
+              <select class="source-switcher" title="Switch uploaded bundle">
+                <option value="">Current bundle</option>
+              </select>
+            </label>
+            <button type="button" class="theme-toggle theme-page-toggle theme-slider-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+              <span class="theme-slider-icon light-icon">☀</span>
+              <span class="theme-slider-icon dark-icon">☾</span>
+              <span class="theme-slider-knob"></span>
+            </button>
+          </div>
+        </div>
+        </div>
+
+        <section class="panel">
+          <div class="section-head">
+            <h2>All VMs</h2>
+            <div class="inventory-search-wrap"><span id="vmSearchTotal" class="vm-search-total">Total: 0</span><input type="search" id="searchBox" placeholder="Search VM, host, datastore, guest OS..."></div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="expand-col"></th>
+                  <th>No</th>
+                  <th>VM Name</th>
+                  <th>Host</th>
+                  <th>Datastore</th>
+                  <th>Guest OS</th>
+                  <th>vCPU</th>
+                  <th>Memory MB</th>
+                  <th>Disk</th>
+                  <th>Network</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody id="vmTableBody">
+                <tr><td colspan="11" class="empty">No inventory loaded.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="insightsPage" class="page-section hidden">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Troubleshooting Insights</p>
+            <h1>Issue Indicators</h1>
+          
+          <div class="page-head-tools">
+            <label class="source-switcher-wrap">
+              <span class="source-label">Selected Source:</span>
+              <select class="source-switcher" title="Switch uploaded bundle">
+                <option value="">Current bundle</option>
+              </select>
+            </label>
+            <button type="button" class="theme-toggle theme-page-toggle theme-slider-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+              <span class="theme-slider-icon light-icon">☀</span>
+              <span class="theme-slider-icon dark-icon">☾</span>
+              <span class="theme-slider-knob"></span>
+            </button>
+          </div>
+        </div>
+        </div>
+
+        <section class="panel">
+          <div class="section-head">
+            <h2>All Troubleshooting Findings</h2>
+            <span class="mini-badge" id="insightsFindingBadge">No analysis</span>
+          </div>
+          <div id="insightsContainer" class="findings insights-full">
+            <div class="empty-card">Upload a bundle to generate troubleshooting insights.</div>
+          </div>
+        </section>
+      </section>
+
+      <section id="pathmappingPage" class="page-section hidden">
+        <div class="page-head"><div><p class="eyebrow">Path Mapping</p><h1>HBA to Storage LUN Connectivity</h1>
+          <div class="page-head-tools">
+            <label class="source-switcher-wrap">
+              <span class="source-label">Selected Source:</span>
+              <select class="source-switcher" title="Switch uploaded bundle">
+                <option value="">Current bundle</option>
+              </select>
+            </label>
+            <button type="button" class="theme-toggle theme-page-toggle theme-slider-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+              <span class="theme-slider-icon light-icon">☀</span>
+              <span class="theme-slider-icon dark-icon">☾</span>
+              <span class="theme-slider-knob"></span>
+            </button>
+          </div>
+        </div></div>
+        <section class="panel">
+          <div class="path-summary-grid">
+            <div class="path-stat"><span>HBAs</span><strong id="pmHbaCount">0</strong></div><div class="path-stat"><span>Storage LUNs</span><strong id="pmStorageCount">0</strong></div><div class="path-stat"><span>Paths</span><strong id="pmPathCount">0</strong></div><div class="path-stat active"><span>Active</span><strong id="pmActiveCount">0</strong></div><div class="path-stat standby"><span>Standby</span><strong id="pmStandbyCount">0</strong></div><div class="path-stat dead"><span>Dead</span><strong id="pmDeadCount">0</strong></div>
+          </div>
+          <div class="path-tables">
+            <details open>
+              <summary><span>1. HBA Adapters</span><input type="search" class="path-table-search" data-target-table="pmAdaptersBody" placeholder="Search adapters..."></summary>
+              <div class="path-table-wrap">
+                <table class="path-data-table">
+                  <thead><tr><th>No</th><th>HBA Name</th><th>Description</th><th>Port State</th><th>Source WWPN</th><th>Firmware Version</th><th>Driver Name</th></tr></thead>
+                  <tbody id="pmAdaptersBody"><tr><td colspan="7" class="empty">No adapter data.</td></tr></tbody>
+                </table>
+              </div>
+            </details>
+            <details open>
+              <summary><span>2. Storage Devices / LUNs</span><input type="search" class="path-table-search" data-target-table="pmDevicesBody" placeholder="Search storage..."></summary>
+              <div class="path-table-wrap">
+                <table class="path-data-table">
+                  <thead><tr><th>NAA ID</th><th>Display Name</th><th>Runtime</th><th>Target WWPN</th><th>Working Paths</th><th>Policy</th><th>Vendor</th><th>Model</th></tr></thead>
+                  <tbody id="pmDevicesBody"><tr><td colspan="8" class="empty">No storage data.</td></tr></tbody>
+                </table>
+              </div>
+            </details>
+            <details open>
+              <summary><span>3. HBA to LUN Connections</span><input type="search" class="path-table-search" data-target-table="pmConnectionsBody" placeholder="Search connections..."></summary>
+              <div class="path-table-wrap">
+                <table class="path-data-table">
+                  <thead><tr><th>Source (HBA)</th><th>NAA ID</th><th>Source WWPN</th><th>Status</th><th>Target WWPN</th><th>Destination (LUN)</th><th>Policy</th><th>Runtime</th></tr></thead>
+                  <tbody id="pmConnectionsBody"><tr><td colspan="8" class="empty">No connection data.</td></tr></tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+
+          <div class="path-toolbar"><div class="path-legend"><span><i class="legend-line active"></i>Active</span><span><i class="legend-line standby"></i>Standby</span><span><i class="legend-line dead"></i>Dead/Broken</span><span><i class="legend-line unknown"></i>Unknown</span></div><button class="soft-btn" id="fitPathGraphBtn">Fit Graph</button></div>
+          <div class="path-graph-wrap"><div id="pathGraph"></div><div id="pathTooltip" class="path-tooltip hidden"></div></div>
+        </section>
+      </section>
+
+      <section id="logsPage" class="page-section hidden">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Logs</p>
+            <h1>vmkernel.log & hostd.log</h1>
+          
+          <div class="page-head-tools">
+            <label class="source-switcher-wrap">
+              <span class="source-label">Selected Source:</span>
+              <select class="source-switcher" title="Switch uploaded bundle">
+                <option value="">Current bundle</option>
+              </select>
+            </label>
+            <button type="button" class="theme-toggle theme-page-toggle theme-slider-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+              <span class="theme-slider-icon light-icon">☀</span>
+              <span class="theme-slider-icon dark-icon">☾</span>
+              <span class="theme-slider-knob"></span>
+            </button>
+          </div>
+        </div>
+        </div>
+
+        <section class="panel">
+          <div class="tabs logs-tabs">
+            <button class="tab active" data-log-type="vmkernel" data-log-desc="/var/run/log/vmkernel.log - Core kernel log; hardware, storage, and networking events">vmkernel.log</button>
+            <button class="tab" data-log-type="hostd" data-log-desc="/var/run/log/hostd.log - ESXi management service; VM power states and API tasks">hostd.log</button>
+            <button class="tab" data-log-type="vpxa" data-log-desc="/var/run/log/vpxa.log - vCenter agent log; communication between host and vCenter">vpxa.log</button>
+            <button class="tab" data-log-type="messages" data-log-desc="/var/run/log/messages - General system messages and startup logs">messages</button>
+            <button class="tab" data-log-type="vobd" data-log-desc="/var/run/log/vobd.log - VMkernel Observation log; storage/network pathing errors">vobd.log</button>
+            <button class="tab" data-log-type="auth" data-log-desc="/var/run/log/auth.log - Authentication logs; logins and security events">auth.log</button>
+            <button class="tab" data-log-type="shell" data-log-desc="/var/run/log/shell.log - History of commands executed via ESXi Shell">shell.log</button>
+            <button class="tab" data-log-type="syslog" data-log-desc="/var/run/log/syslog.log - General system logs and service status">syslog.log</button>
+            <button class="tab" data-log-type="vmkwarning" data-log-desc="/var/run/log/vmkwarning.log - Summary of warnings and alerts from the kernel">vmkwarning.log</button>
+            <button class="tab" data-log-type="storage_devices" data-log-desc="/commands/esxcli_storage-core-device-list.txt - Snapshot of storage device status">storage devices</button>
+            <button class="tab" data-log-type="network_nics" data-log-desc="/commands/esxcli_network-nic-list.txt - Snapshot of physical network adapter status">network NICs</button>
+          </div>
+          <div id="logDescription" class="log-description">/var/run/log/vmkernel.log - Core kernel log; hardware, storage, and networking events</div>
+          <div class="log-toolbar">
+            <input type="search" id="logSearch" placeholder="Search log text, e.g. APD, vmnic, power on failed...">
+            <button id="loadLogBtn">Filter</button>
+          </div>
+
+          <div id="logMeta" class="status hidden"></div>
+          <pre id="logViewer" class="log-viewer">No log loaded.</pre>
+        </section>
+      </section>
+
+      <section id="consolePage" class="page-section hidden">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Console</p>
+            <h1>Extracted Bundle Terminal</h1>
+          
+          <div class="page-head-tools">
+            <label class="source-switcher-wrap">
+              <span class="source-label">Selected Source:</span>
+              <select class="source-switcher" title="Switch uploaded bundle">
+                <option value="">Current bundle</option>
+              </select>
+            </label>
+            <button type="button" class="theme-toggle theme-page-toggle theme-slider-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+              <span class="theme-slider-icon light-icon">☀</span>
+              <span class="theme-slider-icon dark-icon">☾</span>
+              <span class="theme-slider-knob"></span>
+            </button>
+          </div>
+        </div>
+        </div>
+
+        <section class="panel terminal-panel">
+          <div class="terminal-window">
+            <div id="terminalOutput" class="terminal-output">
+              <div class="terminal-muted">logX-vms terminal ready. Commands run inside the extracted vm-support directory.</div>
+              <div class="terminal-muted">Try <code>pwd</code>, <code>ls</code>, <code>cd &lt;dir&gt;</code>, <code>find</code>, <code>grep</code>, or <code>clear</code>.</div>
+            </div>
+            <form id="terminalForm" class="terminal-input-row">
+              <span class="terminal-prompt">logX-vms:bundle$</span>
+              <input id="terminalCommand" class="terminal-input" autocomplete="off" spellcheck="false" autofocus>
+            </form>
+          </div>
+        </section>
+      </section>
+
+      <section id="recentPage" class="page-section hidden">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Recent Uploads</p>
+            <h1>Uploaded Bundles</h1>
+          </div>
+        </div>
+
+        <section class="panel">
+          <div class="section-head">
+            <h2>Last 5 Uploaded Files</h2>
+            <button class="soft-btn" data-goto="upload">Upload New</button>
+          </div>
+          <div class="recent-page-table-wrap">
+            <table class="recent-page-table">
+              <thead>
+                <tr>
+                  <th>File Name</th>
+                  <th>Size</th>
+                  <th class="recent-delete-col">Delete</th>
+                </tr>
+              </thead>
+              <tbody id="recentUploadsPage">
+                <tr><td colspan="3" class="empty">No recent uploads.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="uploadPage" class="page-section hidden">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">Upload & Analyze</p>
+            <h1 class="upload-page-title">Upload VM-Support Files</h1><small class="page-source">Source: <span class="currentSourceFile">-</span></small>
+          
+          <div class="page-head-tools">
+            <label class="source-switcher-wrap">
+              <span class="source-label">Selected Source:</span>
+              <select class="source-switcher" title="Switch uploaded bundle">
+                <option value="">Current bundle</option>
+              </select>
+            </label>
+            <button type="button" class="theme-toggle theme-page-toggle theme-slider-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+              <span class="theme-slider-icon light-icon">☀</span>
+              <span class="theme-slider-icon dark-icon">☾</span>
+              <span class="theme-slider-knob"></span>
+            </button>
+          </div>
+        </div>
+        </div>
+
+        <section class="panel upload-center-panel">
+          <div id="uploadMount"></div>
+        </section>
+      </section>
+      <footer class="app-footer">logX vm-support tool v1.0 | © 2026 – ideas by nixnux</footer>
+    <button id="topButton" class="top-button" title="Back to top"><i class="bi bi-arrow-up"></i></button>
+    </main>
+  </div>
+
+  <template id="uploadTemplate">
+    <form class="upload-box">
+      <label class="drop-zone">
+        <input type="file" name="bundle" class="bundle-input" accept=".tgz,.tar,.gz,.zip" multiple>
+        <span class="drop-icon file-type-icon" data-kind="upload"><img src="/static/icons/upload.png" alt="Upload"></span>
+        <span class="drop-title">Drag & drop ESXi/vCenter support bundle here</span>
+        <div class="progress-wrap hidden">
+          <div class="progress-label">
+            <span class="progress-stage">Waiting...</span>
+            <strong class="progress-percent">0%</strong>
+          </div>
+          <div class="progress-track"><div class="progress-fill"></div></div>
+        </div>
+      </label>
+      <div class="upload-queue hidden"></div>
+      <div class="upload-actions-row">
+        <div class="upload-buttons">
+          <button type="button" class="cancel-upload-btn hidden"><i class="bi bi-x-circle"></i> Cancel</button>
+          <button type="button" class="add-new-btn hidden"><i class="bi bi-plus-circle"></i> Add New</button>
+          <button type="submit" class="primary-upload-btn"><i class="bi bi-upload"></i> Upload</button>
+        </div>
+      </div>
+    </form>
+  </template>
+
+  <script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+  
+  <div id="deleteConfirmModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+    <div class="confirm-modal-backdrop"></div>
+    <div class="confirm-modal-card">
+      <div class="confirm-icon"><i class="bi bi-trash3"></i></div>
+      <div class="confirm-content">
+        <h3 id="deleteConfirmTitle">Delete uploaded file?</h3>
+        <p>This will remove the uploaded bundle from the system.</p>
+        <div class="confirm-file" id="deleteConfirmFile">-</div>
+      </div>
+      <div class="confirm-actions">
+        <button type="button" class="confirm-btn secondary" id="deleteCancelBtn">Cancel</button>
+        <button type="button" class="confirm-btn danger" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+
+    <div id="pathGraphModal" class="path-graph-modal hidden" aria-hidden="true">
+      <div class="path-graph-modal-card">
+        <button id="pathGraphModalClose" class="path-graph-modal-close" title="Close"><i class="bi bi-x-lg"></i></button>
+        <div class="path-graph-modal-head">
+          <div>
+            <p class="eyebrow">Path Mapping Detail</p>
+            <h2 id="pathGraphModalTitle">Selected Node</h2>
+          </div>
+          <div class="path-graph-modal-actions">
+            <button id="pathGraphModalFit" class="soft-btn">Fit</button>
+          </div>
+        </div>
+        <div id="pathGraphModalCanvas" class="path-graph-modal-canvas"></div>
+      </div>
+    </div>
+
+</body>
+</html>
