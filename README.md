@@ -18,6 +18,8 @@ esx-<hostname>.<domain>.<timestamp>.tgz
 
 It can also process ESXi `vm-support` bundles found inside `VMware-vCenter-support*.zip` archives.
 
+<img width="912" height="813" alt="SCR-20260511-jtwl" src="https://github.com/user-attachments/assets/8f29c78a-08ee-4e9c-b5a4-a596b9a4d15f" />
+
 ---
 
 ## Main Features
@@ -116,6 +118,8 @@ The page also includes:
 - HBA-to-LUN graph visualization.
 - Focused graph modal.
 ```
+<img width="681" height="795" alt="Untitled" src="https://github.com/user-attachments/assets/9a941243-d542-4b88-a68a-7be7dcfbc49c" />
+
 
 ### Console
 
