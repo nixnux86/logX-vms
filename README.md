@@ -61,6 +61,8 @@ It can also process ESXi `vm-support` bundles found inside `VMware-vCenter-suppo
 - VM identity details when available.
 - Disk and NIC details when available.
 ```
+<img width="1174" height="630" alt="SCR-20260511-kcmi" src="https://github.com/user-attachments/assets/d04c7d1f-b2da-4f5d-abb4-28ad4bd71974" />
+
 
 ### Troubleshooting
 
@@ -87,6 +89,8 @@ Tabbed viewer for common ESXi logs and command outputs, including:
 /commands/esxcli_storage-core-device-list.txt
 /commands/esxcli_network-nic-list.txt
 ```
+<img width="1136" height="462" alt="SCR-20260511-kdqu" src="https://github.com/user-attachments/assets/9d9e356f-ed87-4bf5-85d8-173d756ea592" />
+
 
 ### Path Mapping
 
@@ -118,7 +122,7 @@ The page also includes:
 - HBA-to-LUN graph visualization.
 - Focused graph modal.
 ```
-<img width="681" height="795" alt="Untitled" src="https://github.com/user-attachments/assets/9a941243-d542-4b88-a68a-7be7dcfbc49c" />
+<img width="1524" height="1386" alt="Untitled 22" src="https://github.com/user-attachments/assets/c19df4ff-b35a-4b40-9655-796e018f2ae8" />
 
 
 ### Console
